@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* index.css */
+.App {
+    background-color: transparent; /* Make sure this is the only background-color property here */
+  }
+  
+  /* index.css */
+.bg-transparent {
+    background-color: transparent;
+  }
+  
+/* Custom scrollbar for webkit browsers */
+.messages-container::-webkit-scrollbar {
+    width: 12px; /* Adjust the width of the scrollbar */
+  }
+  
+  .messages-container::-webkit-scrollbar-track {
+    background: #f0f0f000; /* Color of the track */
+  }
+  
+  .messages-container::-webkit-scrollbar-thumb {
+    background-color: #888; /* Color of the scrollbar itself */
+    border-radius: 6px; /* Round corners of the scrollbar */
+    border: 3px solid #f0f0f0; /* Creates padding around the scrollbar */
+  }
+  
+  /* Custom scrollbar for Firefox */
+  .messages-container {
+    scrollbar-width: auto; /* "auto" or "thin" */
+    scrollbar-color: #888 #f0f0f000; /* thumb and track color */
+  }
+  
+
+@keyframes moveGradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  .background {
+    background: linear-gradient(270deg, #1a1f5c, #25105c, #520a5c);
+    background-size: 600% 600%;
+    animation: moveGradient 30s ease infinite;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .star {
+    width: 2px;
+    height: 2px;
+    background: white;
+    position: absolute;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+  }
+
+  .wolframGPT4Button {
+    background-color: red;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }  
