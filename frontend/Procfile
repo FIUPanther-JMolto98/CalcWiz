@@ -1,1 +1,1 @@
-web: node index.js
+web: npx serve -s build
