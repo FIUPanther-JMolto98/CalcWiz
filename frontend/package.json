@@ -25,7 +25,6 @@
   "engines": {
     "node": "20.11.0"
   },
-  "homepage": "https://FIUPanther-JMolto98.github.io/CalcWiz/",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
