@@ -20,6 +20,9 @@
     "tailwindcss": "^3.4.1",
     "web-vitals": "^2.1.4"
   },
+  "engines": {
+    "node": "20.11.0"
+  },
   "homepage": "https://FIUPanther-JMolto98.github.io/CalcWiz/",
   "scripts": {
     "start": "react-scripts start",
