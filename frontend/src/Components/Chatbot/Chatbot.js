@@ -43,7 +43,7 @@ const Chatbot = () => {
     
     if (gptVersion === "4") {
       try {
-        const backendResponse = await axios.post(`http://127.0.0.1:5000/assist-query`, { input });
+        const backendResponse = await axios.post(`/assist-query`, { input });
         // Expecting an array of responses now, instead of a single response string
         const responses = backendResponse.data.responses || [];
     
@@ -53,7 +53,7 @@ const Chatbot = () => {
     
           // For image responses, construct the full URL to the image
           if (type === "image") {
-            content = `http://127.0.0.1:5000${content}`; // Adjust this if necessary for your deployment environment
+            content = `/${content}`; // Adjust this if necessary for your deployment environment
           }
     
           const newBotMessage = { text: content, sender: 'bot', type };
@@ -67,7 +67,7 @@ const Chatbot = () => {
     else if (gptVersion === "WGPT-4") {
       try {
         // Adjust the URL to where your Flask app is hosted, if not localhost or if on a different port
-        const backendResponse = await axios.post(`http://127.0.0.1:5000/wolframquery`, { input });
+        const backendResponse = await axios.post(`/wolframquery`, { input });
         
         // Use the 'response' field from your backend's JSON response as the bot's message
         const wolframResponse = backendResponse.data.response || "Sorry, I couldn't retrieve data from Wolfram.";
