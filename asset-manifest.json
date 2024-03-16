@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/CalcWiz/static/css/main.902c9b19.css",
+    "main.js": "/CalcWiz/static/js/main.43791e2b.js",
+    "static/js/453.8ab44547.chunk.js": "/CalcWiz/static/js/453.8ab44547.chunk.js",
+    "index.html": "/CalcWiz/index.html",
+    "main.902c9b19.css.map": "/CalcWiz/static/css/main.902c9b19.css.map",
+    "main.43791e2b.js.map": "/CalcWiz/static/js/main.43791e2b.js.map",
+    "453.8ab44547.chunk.js.map": "/CalcWiz/static/js/453.8ab44547.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.902c9b19.css",
+    "static/js/main.43791e2b.js"
+  ]
+}
