@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import requests
 import os
 from dotenv import load_dotenv
@@ -14,10 +14,18 @@ client = OpenAI(
 ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
 load_dotenv()  # Load environment variables
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
 CORS(app)  # Enable CORS for all routes and origins
 
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
+
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(app.static_folder, path)
 
 @app.route('/', methods=['GET'])
 def index():

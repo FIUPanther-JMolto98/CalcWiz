@@ -1,0 +1,13 @@
+{
+    "name": "app-name",
+    "version": "1.0.0",
+    "description": "A description",
+    "engines": {
+      "node": "14.x"
+    },
+    "scripts": {
+      "build": "cd frontend && npm install && npm run build",
+      "start": "python backend/app.py",
+      "heroku-postbuild": "npm run build"
+    }
+  }  
