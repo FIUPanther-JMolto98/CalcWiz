@@ -10,7 +10,8 @@ client = OpenAI(
     # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
-ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
+ASSISTANT_ID="asst_Vsh2apH1xFtr6he53K625VtU";
+# ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
 load_dotenv()  # Load environment variables
 
 app = Flask(__name__)
