@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import MathJax from '@matejmazur/react-mathjax';
 import Chatbot from './Components/Chatbot/Chatbot.js';
 import GPTToggle from './Components/GPTToggle/GPTToggle.js'; // Import the toggle component
 import './index.css';
