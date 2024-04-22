@@ -6,6 +6,7 @@ load_dotenv()  # Load environment variables
 from flask_cors import CORS
 from openai import OpenAI, AssistantEventHandler
 from typing_extensions import override
+import pyttsx3
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
 CORS(app)  # Enable CORS for all routes and origins
@@ -39,6 +40,7 @@ import base64
 def assist_query():
     data = request.json
     user_query = data.get("input")
+    enable_tts = data.get("enable_tts", False)  # get the enable_tts flag from the frontend
 
     try:
         thread = client.beta.threads.create()
@@ -65,6 +67,14 @@ def assist_query():
                         if content_block.type == 'text' and hasattr(content_block.text, 'value'):
                             print("Found an assistant message:", content_block.text.value)  # Debug output
                             assistant_responses.append({"type": "text", "content": content_block.text.value})
+                            if enable_tts:
+                                # Generate audio file using pyttsx3
+                                engine = pyttsx3.init()
+                                audio_filename = f"{msg.id}.mp3"
+                                audio_path = os.path.join(IMAGE_FOLDER, audio_filename)
+                                engine.save_to_file(content_block.text.value, audio_path)
+                                engine.runAndWait()
+                                assistant_responses.append({"type": "audio", "content": f"/images/{audio_filename}"})
                         elif content_block.type == 'image_file':
                             print("Found an image file:", content_block)  # Debug output
                             if hasattr(content_block.image_file, 'file_id'):
