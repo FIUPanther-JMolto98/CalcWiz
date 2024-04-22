@@ -2,22 +2,24 @@ from flask import Flask, request, jsonify, send_from_directory
 import requests
 import os
 from dotenv import load_dotenv
+load_dotenv()  # Load environment variables
 from flask_cors import CORS
 from openai import OpenAI, AssistantEventHandler
 from typing_extensions import override
 
-client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-# ASSISTANT_ID="asst_Vsh2apH1xFtr6he53K625VtU";
-ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
-load_dotenv()  # Load environment variables
-
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
 CORS(app)  # Enable CORS for all routes and origins
 
+client = OpenAI(
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
+    # default_headers={"OpenAI-Beta": "assistants=v1"}
+)
+# ASSISTANT_ID="asst_Vsh2apH1xFtr6he53K625VtU";
+ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
+
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
+print(IMAGE_FOLDER)
 
 @app.route('/')
 def serve():
@@ -64,18 +66,23 @@ def assist_query():
                             print("Found an assistant message:", content_block.text.value)  # Debug output
                             assistant_responses.append({"type": "text", "content": content_block.text.value})
                         elif content_block.type == 'image_file':
-                            # Download and save the image file
-                            image_file_id = content_block.image_file.file_id
-                            image_file = client.files.content(image_file_id)
-                            image_filename = f"{image_file_id}.png"
-                            image_path = os.path.join(IMAGE_FOLDER, image_filename)
-                            with open(image_path, "wb") as f:
-                                f.write(image_file.content)
+                            print("Found an image file:", content_block)  # Debug output
+                            if hasattr(content_block.image_file, 'file_id'):
+                                image_file_id = content_block.image_file.file_id
+                                print("Image file ID:", image_file_id)  # Debug output
+                                # Download and save the image file
+                                image_file = client.files.content(image_file_id)
+                                image_filename = f"{image_file_id}.png"
+                                image_path = os.path.join(IMAGE_FOLDER, image_filename)
+                                with open(image_path, "wb") as f:
+                                    f.write(image_file.content)
 
-                            # Construct the URL for the image
-                            image_url = f"/images/{image_filename}"
-                            print("Image URL:", image_url)  # Debug output
-                            assistant_responses.append({"type": "image", "content": image_url})
+                                # Construct the URL for the image
+                                image_url = f"/images/{image_filename}"
+                                print("Image URL:", image_url)  # Debug output
+                                assistant_responses.append({"type": "image", "content": image_url})
+                            else:
+                                print("Image file ID not found in the response")  # Debug output
 
             return jsonify({"responses": assistant_responses})
         else:
@@ -84,40 +91,40 @@ def assist_query():
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
-
+    
 from flask import send_from_directory
 
 @app.route('/images/<filename>')
 def serve_image(filename):
     return send_from_directory(IMAGE_FOLDER, filename)
                     
-@app.route('/gpt4-query', methods=['POST'])
-def gpt_chat():
-    data = request.json
-    user_input = data.get("input")
+# @app.route('/gpt4-query', methods=['POST'])
+# def gpt_chat():
+#     data = request.json
+#     user_input = data.get("input")
 
-    try:
-        response = client.chat.completions.create(
-            messages=[
-                {"role": "user", "content": user_input}
-            ],
-            model="gpt-4-0125-preview",  # Adjust the model as needed
-            temperature=1,
-            max_tokens=256,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
-        )
-        print(response)
-        # Accessing the message content (if the new structure is as assumed)
-        if response and response.choices: 
-            message_content = response.choices[0].message.content
-            return jsonify({"response": message_content})
-        else:
-            return jsonify({"error": "No response from GPT-4"}), 500
-    except Exception as e:
-        print(f"Error calling OpenAI GPT-4: {e}")
-        return jsonify({"error": "Failed to fetch response from GPT-4"}), 500
+#     try:
+#         response = client.chat.completions.create(
+#             messages=[
+#                 {"role": "user", "content": user_input}
+#             ],
+#             model="gpt-4-0125-preview",  # Adjust the model as needed
+#             temperature=1,
+#             max_tokens=256,
+#             top_p=1,
+#             frequency_penalty=0,
+#             presence_penalty=0
+#         )
+#         print(response)
+#         # Accessing the message content (if the new structure is as assumed)
+#         if response and response.choices: 
+#             message_content = response.choices[0].message.content
+#             return jsonify({"response": message_content})
+#         else:
+#             return jsonify({"error": "No response from GPT-4"}), 500
+#     except Exception as e:
+#         print(f"Error calling OpenAI GPT-4: {e}")
+#         return jsonify({"error": "Failed to fetch response from GPT-4"}), 500
     
 @app.route('/wolframquery', methods=['POST'])
 def query():
@@ -154,8 +161,8 @@ def daisy_chain_query():
         wolfram_text = wolfram_response.text
         # Now, use the Wolfram response as part of the input to the OpenAI model
         try:
-            openai_response = openai.ChatCompletion.create(
-                model="gpt-4-0125-preview",  # Adjust the model as per your requirement
+            openai_response = client.chat.completions.create(
+                model="gpt-4-turbo",  # Adjust the model as per your requirement
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": user_input},
@@ -164,7 +171,9 @@ def daisy_chain_query():
                 temperature=1,
                 max_tokens=256
             )
-            return jsonify({"response": openai_response.choices[0].message["content"]})
+            print(openai_response)
+            response_text = openai_response.choices[0].message.content
+            return jsonify({"response": response_text})
         except Exception as e:
             print(e)
             return jsonify({"error": "Failed to process with OpenAI"}), 500
