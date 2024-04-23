@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AiFillRobot } from 'react-icons/ai'; // Example icon for GPT-3.5
-import { BsFillLightningFill } from 'react-icons/bs'; // Example icon for GPT-4
-import GPTToggle from '../GPTToggle/GPTToggle'; // Adjust the path as necessary
+import { AiFillRobot } from 'react-icons/ai';
+import { BsFillLightningFill } from 'react-icons/bs';
+import GPTToggle from '../GPTToggle/GPTToggle';
 import { FaStar, FaMicrophone, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import { FiSend } from 'react-icons/fi';
 import axios from 'axios';
-import LatexContent from '../LatexContent/LatexContent'; // Adjust the path as necessary
+import LatexContent from '../LatexContent/LatexContent';
 import './Chatbot.css';
 
 const BotResponsePlaceholder = () => (
