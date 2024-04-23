@@ -71,13 +71,14 @@ const Chatbot = () => {
         responses.forEach(response => {
           let content = response.content;
           const type = response.type;
+          const audio = response.audio;
 
           // For image responses, construct the full URL to the image
           if (type === "image") {
             content = `${process.env.REACT_APP_API_BASE_URL}${content}`; // Adjust this if necessary for your deployment environment
           }
 
-          const newBotMessage = { text: content, sender: 'bot', type: type };
+          const newBotMessage = { text: content, sender: 'bot', type: type, audio: audio };
           setMessages(currentMessages => [...currentMessages, newBotMessage]);
         });
       } catch (error) {
@@ -112,10 +113,8 @@ const Chatbot = () => {
   };
 
   const playAudio = (audioSrc) => {
-    const audio = audioRefs.current[audioSrc];
-    if (audio) {
-      audio.play();
-    }
+    const audio = new Audio(`${process.env.REACT_APP_API_BASE_URL}${audioSrc}`);
+    audio.play();
   };
 
   const renderMessageContent = (msg) => {
@@ -125,7 +124,7 @@ const Chatbot = () => {
         if (msg.text.includes('\\[') || msg.text.includes('\\(') || msg.text.includes('\\)')) {
           // Split the message into LaTeX and non-LaTeX parts
           const parts = msg.text.split(/((?:\\\[.*?\\\])|(?:\\\(.*?\\\)))/);
-
+  
           // Process each part separately
           const processedParts = parts.map((part, index) => {
             if (part.startsWith('\\[')) {
@@ -141,32 +140,42 @@ const Chatbot = () => {
               return part;
             }
           });
-
-          return <span>{processedParts}</span>;
+  
+          return (
+            <div className="relative">
+              <span>{processedParts}</span>
+              {msg.audio && (
+                <div className="absolute top-0 right-0 mt-2 mr-2">
+                  <FaVolumeUp
+                    className="text-white text-xl cursor-pointer"
+                    onClick={() => playAudio(msg.audio)}
+                  />
+                </div>
+              )}
+            </div>
+          );
         } else {
-          return msg.text;
+          return (
+            <div className="relative">
+              {msg.text}
+              {msg.audio && (
+                <div className="absolute top-0 right-0 mt-2 mr-2">
+                  <FaVolumeUp
+                    className="text-white text-xl cursor-pointer"
+                    onClick={() => playAudio(msg.audio)}
+                  />
+                </div>
+              )}
+            </div>
+          );
         }
       case 'image':
         return <img src={msg.text} alt="Content" style={{ maxWidth: '100%', height: 'auto' }} />;
-      case 'audio':
-        return (
-          <>
-            <audio
-              ref={(ref) => (audioRefs.current[msg.text] = ref)}
-              src={msg.text}
-              autoPlay
-            />
-            <FaVolumeUp
-              className="text-white text-xl cursor-pointer ml-2"
-              onClick={() => playAudio(msg.text)}
-            />
-          </>
-        );
       default:
         return <span>Unsupported message type: {msg.type}</span>;
     }
   };
-
+  
   return (
     <div className={`background flex flex-col h-screen items-center justify-center p-4 ${darkMode ? 'dark' : ''}`}>
       <div className="text-4xl font-bold mb-0 flex items-center text-white">
@@ -196,9 +205,7 @@ const Chatbot = () => {
           {messages.map((msg, index) => (
             <div key={index} className={`p-3 my-2 rounded-lg text-white ${msg.sender === 'user' ? 'ml-auto' : 'bg-gray-800 dark:bg-gray-800 mr-auto'}`}
               style={msg.sender === 'user' ? { background: 'linear-gradient(to right, #8111cb,#5211cb,#4311cb)' } : {}}>
-              <div className="flex items-center">
-                {renderMessageContent(msg)}
-              </div>
+              {renderMessageContent(msg)}
             </div>
           ))}
           {isBotTyping && <BotResponsePlaceholder />}

@@ -64,3 +64,22 @@
       transform: scale(1);
     }
   }
+
+.messages-container {
+  /* Existing styles... */
+}
+
+.audio-messages-container {
+  /* Container for grouped audio messages */
+}
+
+.audio-message {
+    /* Style for an individual audio message */
+    display: flex; 
+    align-items: center;
+    padding: 10px; 
+  }
+
+.audio-message audio {
+    max-width: 80%; /* Adjust as desired */
+}

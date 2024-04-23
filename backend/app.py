@@ -66,7 +66,7 @@ def assist_query():
                     for content_block in msg.content:
                         if content_block.type == 'text' and hasattr(content_block.text, 'value'):
                             print("Found an assistant message:", content_block.text.value)  # Debug output
-                            assistant_responses.append({"type": "text", "content": content_block.text.value})
+                            response_obj = {"type": "text", "content": content_block.text.value}
                             if enable_tts:
                                 # Generate audio file using pyttsx3
                                 engine = pyttsx3.init()
@@ -74,7 +74,8 @@ def assist_query():
                                 audio_path = os.path.join(IMAGE_FOLDER, audio_filename)
                                 engine.save_to_file(content_block.text.value, audio_path)
                                 engine.runAndWait()
-                                assistant_responses.append({"type": "audio", "content": f"/images/{audio_filename}"})
+                                response_obj["audio"] = f"/images/{audio_filename}"
+                            assistant_responses.append(response_obj)                        
                         elif content_block.type == 'image_file':
                             print("Found an image file:", content_block)  # Debug output
                             if hasattr(content_block.image_file, 'file_id'):
