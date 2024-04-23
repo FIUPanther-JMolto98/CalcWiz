@@ -3,11 +3,16 @@
     "version": "1.0.0",
     "description": "A description",
     "engines": {
-      "node": "14.x"
+        "node": "14.x"
     },
     "scripts": {
-      "build": "cd frontend && npm install && npm run build",
-      "start": "python backend/app.py",
-      "heroku-postbuild": "npm run build"
+        "build": "cd frontend && npm install && npm run build",
+        "start": "python backend/app.py",
+        "heroku-postbuild": "npm run build"
+    },
+    "dependencies": {
+        "react-audio-spectrum": "^0.1.0",
+        "react-wavesurfer": "^0.8.6",
+        "wavesurfer.js": "^7.7.11"
     }
-  }  
+}

@@ -2,20 +2,28 @@ import React from 'react';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
 const config = {
-  loader: { load: ["input/tex", "output/chtml"] },
+  loader: {
+    load: ["input/tex", "output/chtml"],
+  },
   tex: {
-    inlineMath: [['\\(', '\\)']], // Defines delimiters for inline math
-    displayMath: [['\\[', '\\]']], // Defines delimiters for block (display) math
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']],
+    processEscapes: true,
   },
 };
 
 const LatexContent = ({ latexString, inline }) => {
-  // Wraps the LaTeX string with the appropriate delimiters based on whether it's inline or block math
   const content = inline ? `\\(${latexString}\\)` : `\\[${latexString}\\]`;
+
+  // Debugging: Output the processed content
+  console.log("Rendering LaTeX:", content);
 
   return (
     <MathJaxContext config={config}>
-      <MathJax>{content}</MathJax>
+      {/* Apply the inline prop to MathJax to render LaTeX as inline when needed */}
+      <MathJax inline={inline}>
+        <span style={{ display: inline ? 'inline' : 'block' }}>{content}</span>
+      </MathJax>
     </MathJaxContext>
   );
 };

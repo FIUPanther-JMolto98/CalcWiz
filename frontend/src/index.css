@@ -1,21 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* index.css */
-.App {
-    background-color: transparent; /* Make sure this is the only background-color property here */
-  }
-  
   /* index.css */
-.bg-transparent {
-    background-color: transparent;
-  }
-  
-/* Custom scrollbar for webkit browsers */
-.messages-container::-webkit-scrollbar {
-    width: 12px; /* Adjust the width of the scrollbar */
-  }
+  .App {
+      background-color: transparent; /* Make sure this is the only background-color property here */
+    }
+    
+    /* index.css */
+  .bg-transparent {
+      background-color: transparent;
+    }
+    
+  /* Custom scrollbar for webkit browsers */
+  .messages-container::-webkit-scrollbar {
+      width: 12px; /* Adjust the width of the scrollbar */
+    }
   
   .messages-container::-webkit-scrollbar-track {
     background: #f0f0f000; /* Color of the track */

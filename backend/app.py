@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify, send_from_directory
 import requests
 import os
+import re
 from dotenv import load_dotenv
 load_dotenv()  # Load environment variables
 from flask_cors import CORS
 from openai import OpenAI, AssistantEventHandler
 from typing_extensions import override
+import time
+import base64
 import pyttsx3
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
@@ -20,7 +23,7 @@ client = OpenAI(
 ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
 
 IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
-print(IMAGE_FOLDER)
+# print(IMAGE_FOLDER)
 
 @app.route('/')
 def serve():
@@ -34,9 +37,7 @@ def static_files(path):
 def index():
     return "Hello, World from the Flask Backend 🐍🧪!"
 
-import time
-import base64
-@app.route('/assist-query', methods=['POST'])
+@app.route('/gpt4assist-query', methods=['POST'])
 def assist_query():
     data = request.json
     user_query = data.get("input")
@@ -109,6 +110,85 @@ from flask import send_from_directory
 def serve_image(filename):
     return send_from_directory(IMAGE_FOLDER, filename)
                     
+    
+@app.route('/wolframquery', methods=['POST'])
+def query():
+    data = request.json
+    api_url = "https://www.wolframalpha.com/api/v1/llm-api"
+    params = {
+        "input": data.get("input"),
+        "appid": os.getenv('WOLFRAM_APPID'),
+    }
+    response = requests.get(api_url, params=params)
+    
+    if response.status_code == 200:
+        # Check if the response is plain text and handle accordingly
+        if 'text/plain' in response.headers.get('Content-Type', ''):
+            # Return the plain text response directly
+            # Wrapping the text response in a JSON object for consistent API response structure
+            return jsonify({"response": response.text})
+        else:
+            # If the response happens to be JSON or any other format you wish to handle differently
+            return jsonify(response.json())
+    else:
+        return jsonify({"error": "Failed to fetch data from the Wolfram API"}), response.status_code
+    
+@app.route('/wgpt4assist-query', methods=['POST'])
+def daisy_chain_query():
+    user_input = request.json.get("input")
+    wolfram_appid = os.getenv('WOLFRAM_APPID')
+    wolfram_response = requests.get(
+        "https://www.wolframalpha.com/api/v1/llm-api",
+        params={"input": user_input, "appid": wolfram_appid}
+    )
+
+    if wolfram_response.status_code == 200:
+        wolfram_text = wolfram_response.text
+        try:
+            thread = client.beta.threads.create()
+            run = client.beta.threads.runs.create(
+                thread_id=thread.id,
+                assistant_id=ASSISTANT_ID,
+                instructions=f"Please assist with the following query, using the provided Wolfram Alpha response:\n\nUser query: {user_input}\n\nWolfram Alpha response: {wolfram_text}"
+            )
+
+            while run.status in ['queued', 'in_progress', 'cancelling']:
+                time.sleep(1)
+                run = client.beta.threads.runs.retrieve(
+                    thread_id=thread.id,
+                    run_id=run.id
+                )
+
+            if run.status == 'completed':
+                messages = client.beta.threads.messages.list(thread_id=thread.id)
+                assistant_response = ""
+                image_url = None
+                for msg in messages.data:
+                    if msg.role == 'assistant':
+                        for content_block in msg.content:
+                            if content_block.type == 'text' and hasattr(content_block.text, 'value'):
+                                text = content_block.text.value
+                                assistant_response += text + "\n"
+                                # Improved URL extraction
+                                match = re.search(r'https?://[^\s)]+/MSP/MSP[^\s)]+\?MSPStoreType=image/(?:png|jpg|jpeg|gif)(?:&[^\s)]+)?', text)
+                                if match:
+                                    image_url = match.group(0)  # Directly use the matched URL
+                                    print(image_url)
+
+                return jsonify({"response": assistant_response.strip(), "image_url": image_url})
+            else:
+                return jsonify({"error": f"Run did not complete successfully, status: {run.status}"}), 500
+
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
+
+    else:
+        return jsonify({"error": "Failed to fetch data from the Wolfram API"}), wolfram_response.status_code
+    
+if __name__ == "__main__":
+    app.run(debug=True)
+
 # @app.route('/gpt4-query', methods=['POST'])
 # def gpt_chat():
 #     data = request.json
@@ -136,60 +216,3 @@ def serve_image(filename):
 #     except Exception as e:
 #         print(f"Error calling OpenAI GPT-4: {e}")
 #         return jsonify({"error": "Failed to fetch response from GPT-4"}), 500
-    
-@app.route('/wolframquery', methods=['POST'])
-def query():
-    data = request.json
-    api_url = "https://www.wolframalpha.com/api/v1/llm-api"
-    params = {
-        "input": data.get("input"),
-        "appid": os.getenv('WOLFRAM_APPID'),
-    }
-    response = requests.get(api_url, params=params)
-    
-    if response.status_code == 200:
-        # Check if the response is plain text and handle accordingly
-        if 'text/plain' in response.headers.get('Content-Type', ''):
-            # Return the plain text response directly
-            # Wrapping the text response in a JSON object for consistent API response structure
-            return jsonify({"response": response.text})
-        else:
-            # If the response happens to be JSON or any other format you wish to handle differently
-            return jsonify(response.json())
-    else:
-        return jsonify({"error": "Failed to fetch data from the Wolfram API"}), response.status_code
-    
-@app.route('/wgpt4-query', methods=['POST'])
-def daisy_chain_query():
-    user_input = request.json.get("input")
-    wolfram_appid = os.getenv('WOLFRAM_APPID')
-    wolfram_response = requests.get(
-        "https://www.wolframalpha.com/api/v1/llm-api",
-        params={"input": user_input, "appid": wolfram_appid}
-    )
-
-    if wolfram_response.status_code == 200:
-        wolfram_text = wolfram_response.text
-        # Now, use the Wolfram response as part of the input to the OpenAI model
-        try:
-            openai_response = client.chat.completions.create(
-                model="gpt-4-turbo",  # Adjust the model as per your requirement
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": user_input},
-                    {"role": "assistant", "content": wolfram_text},
-                ],
-                temperature=1,
-                max_tokens=256
-            )
-            print(openai_response)
-            response_text = openai_response.choices[0].message.content
-            return jsonify({"response": response_text})
-        except Exception as e:
-            print(e)
-            return jsonify({"error": "Failed to process with OpenAI"}), 500
-    else:
-        return jsonify({"error": "Failed to fetch data from the Wolfram API"}), wolfram_response.status_code
-
-if __name__ == "__main__":
-    app.run(debug=True)
