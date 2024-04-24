@@ -208,6 +208,15 @@ const Chatbot = () => {
                   />
                 </div>
               )}
+              {gptVersion === "WGPT-4" && msg.imageUrl && (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <img
+                    src={msg.imageUrl}
+                    alt="Wolfram Alpha Image"
+                    style={{ maxWidth: '75%', height: '75%', marginTop: '10px' }}
+                  />
+                </div>
+              )}
             </div>
           );
         } else {
@@ -222,7 +231,7 @@ const Chatbot = () => {
                   />
                 </div>
               )}
-              {msg.imageUrl && (
+              {gptVersion === "WGPT-4" && msg.imageUrl && (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <img
                     src={msg.imageUrl}
@@ -234,20 +243,21 @@ const Chatbot = () => {
             </div>
           );
         }
-          case 'image':
-          return <img src={msg.text} alt="Content" style={{ maxWidth: '100%', height: 'auto' }} />;
-        default:
-          return (
-            <div>
-              <div dangerouslySetInnerHTML={{ __html: msg.text }} />
-              {msg.imageUrl && (
-                <img src={msg.imageUrl} alt="Wolfram Alpha Image" style={{ maxWidth: '100%', height: 'auto', marginTop: '10px' }} />
-              )}
-            </div>
-          );
-      }
-    };
-    const startRecording = () => {
+      case 'image':
+        return <img src={msg.text} alt="Content" style={{ maxWidth: '100%', height: 'auto' }} />;
+      default:
+        return (
+          <div>
+            <div dangerouslySetInnerHTML={{ __html: msg.text }} />
+            {gptVersion === "WGPT-4" && msg.imageUrl && (
+              <img src={msg.imageUrl} alt="Wolfram Alpha Image" style={{ maxWidth: '100%', height: 'auto', marginTop: '10px' }} />
+            )}
+          </div>
+        );
+    }
+  };
+    
+  const startRecording = () => {
     if (isRecording) {
       stopRecording();
       return;
